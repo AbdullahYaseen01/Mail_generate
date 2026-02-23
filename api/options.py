@@ -5,8 +5,8 @@ import json
 import sys
 from pathlib import Path
 
-# Ensure project root is on path when running on Vercel (api/options/index.py -> 2 levels up)
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+# Ensure project root is on path when running on Vercel (api/options.py -> parent.parent)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from main import NICHES, CITIES
 from http.server import BaseHTTPRequestHandler

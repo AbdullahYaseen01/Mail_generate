@@ -1,14 +1,14 @@
 """
 Vercel serverless: POST /api/generate - runs lead collection and returns CSV.
-Uses /tmp for output (Vercel serverless writable dir). Max 60s on Pro plan.
+Uses /tmp for output (Vercel serverless writable dir).
 """
 import json
 import sys
 import time
 from pathlib import Path
 
-# Ensure project root is on path when running on Vercel (api/generate/index.py -> 2 levels up)
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+# Ensure project root is on path when running on Vercel (api/generate.py -> parent.parent)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from main import run_collection
 from http.server import BaseHTTPRequestHandler
