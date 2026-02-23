@@ -111,9 +111,18 @@ def load_config(config_path: Path) -> dict:
     return config
 
 
+def _writable_checkpoint_path(requested: Path | None) -> Path:
+    """Use requested path, or /tmp on Vercel (read-only fs), else default."""
+    if requested is not None:
+        return requested
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/checkpoint.json")
+    return CHECKPOINT_FILE
+
+
 def load_checkpoint(checkpoint_file: Path | None = None) -> tuple[list[dict], set[str], set[str]]:
     """Load checkpoint if exists. Returns (leads, seen_place_ids, seen_domains)."""
-    cf = checkpoint_file or CHECKPOINT_FILE
+    cf = _writable_checkpoint_path(checkpoint_file)
     if not cf.exists():
         return [], set(), set()
 
@@ -137,7 +146,7 @@ def save_checkpoint(
     checkpoint_file: Path | None = None,
 ) -> None:
     """Save checkpoint to file."""
-    cf = checkpoint_file or CHECKPOINT_FILE
+    cf = _writable_checkpoint_path(checkpoint_file)
     cf.parent.mkdir(parents=True, exist_ok=True)
     data = {
         "leads": leads,
@@ -479,6 +488,9 @@ def run_collection(
     """
     if not niches or not cities:
         raise ValueError("niches and cities must be non-empty lists")
+    # Serverless (e.g. Vercel) has read-only fs; use /tmp for all writes
+    if work_dir is None and os.environ.get("VERCEL"):
+        work_dir = Path("/tmp")
     out_dir = work_dir or OUTPUT_DIR
     output_path = output_path or (out_dir / "leads_export.csv")
     checkpoint_file = out_dir / "checkpoint.json" if work_dir else None
@@ -500,7 +512,7 @@ def run_collection(
     args.checkpoint_file = checkpoint_file
 
     setup_logging(verbose=False)
-    cf = checkpoint_file or CHECKPOINT_FILE
+    cf = _writable_checkpoint_path(checkpoint_file)
     if clear_checkpoint and cf.exists():
         cf.unlink()
     leads, seen_place_ids, seen_domains = load_checkpoint(checkpoint_file)
