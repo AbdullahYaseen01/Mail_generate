@@ -208,7 +208,7 @@ def osm_place_to_lead(place: OSMPlace, niche: str, city: str) -> dict:
 
 
 def export_csv(leads: list[dict], output_path: Path, require_email_and_website: bool = True) -> None:
-    """Export leads to CSV. If require_email_and_website, only export leads with both email and website."""
+    """Export leads to CSV. If require_email_and_website, prefer leads with both email and website; if none, export all so CSV is never empty."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     columns = [
         "niche", "city", "business_name",
@@ -221,6 +221,8 @@ def export_csv(leads: list[dict], output_path: Path, require_email_and_website: 
             if lead.get("emails_found") and str(lead.get("emails_found", "")).strip() != "Nill"
             and lead.get("website_url") and str(lead.get("website_url", "")).strip() != "Nill"
         ]
+        if not rows:
+            rows = leads
     else:
         rows = leads
     with open(output_path, "w", newline="", encoding="utf-8") as f:
@@ -342,8 +344,6 @@ def _run_google(
                             lead["gmail_addresses"] = _gmail_addresses_from_emails(emails)
                         except Exception as e:
                             logging.debug("Email extraction failed for %s: %s", place.website, e)
-                    if extract_emails and lead.get("emails_found") == "Nill":
-                        continue
                     leads.append(lead)
                     if len(leads) % CHECKPOINT_INTERVAL == 0:
                         save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
@@ -431,9 +431,7 @@ def _run_osm(
                         if len(leads) >= max_leads:
                             break
                         try:
-                            lead, has_email = future.result()
-                            if not has_email:
-                                continue
+                            lead, _has_email = future.result()
                             leads.append(lead)
                             if len(leads) % CHECKPOINT_INTERVAL == 0:
                                 save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
