@@ -207,19 +207,27 @@ def osm_place_to_lead(place: OSMPlace, niche: str, city: str) -> dict:
     }
 
 
-def export_csv(leads: list[dict], output_path: Path) -> None:
-    """Export leads to CSV."""
+def export_csv(leads: list[dict], output_path: Path, require_email_and_website: bool = True) -> None:
+    """Export leads to CSV. If require_email_and_website, only export leads with both email and website."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     columns = [
-        "niche", "city", "business_name", "first_name", "reviews_count",
+        "niche", "city", "business_name",
         "phone", "google_maps_url", "website_url",
         "emails_found",
     ]
+    if require_email_and_website:
+        rows = [
+            lead for lead in leads
+            if lead.get("emails_found") and str(lead.get("emails_found", "")).strip() != "Nill"
+            and lead.get("website_url") and str(lead.get("website_url", "")).strip() != "Nill"
+        ]
+    else:
+        rows = leads
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=columns, extrasaction="ignore")
         writer.writeheader()
-        writer.writerows(leads)
-    logging.info("Exported %d leads to %s", len(leads), output_path)
+        writer.writerows(rows)
+    logging.info("Exported %d leads to %s", len(rows), output_path)
 
 
 def parse_args() -> argparse.Namespace:
