@@ -493,6 +493,9 @@ def run_collection(
         work_dir = Path("/tmp")
     out_dir = work_dir or OUTPUT_DIR
     output_path = output_path or (out_dir / "leads_export.csv")
+    # On Vercel, never write CSV to /var/task; use /tmp even if caller passed another path
+    if os.environ.get("VERCEL") and output_path and "/tmp" not in str(output_path):
+        output_path = out_dir / output_path.name
     checkpoint_file = out_dir / "checkpoint.json" if work_dir else None
     config_path = config_path or Path("config.json")
     # Build a minimal args object

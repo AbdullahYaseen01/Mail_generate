@@ -4,6 +4,7 @@ Serves the UI and /api/generate to run collection and return CSV.
 """
 
 import logging
+import os
 import time
 from pathlib import Path
 
@@ -65,7 +66,13 @@ def api_generate():
 
         max_leads = max(1, min(500, max_leads))
         timestamp = int(time.time())
-        out_path = OUTPUT_DIR / f"leads_web_{timestamp}.csv"
+        # On Vercel (read-only fs), write CSV under /tmp
+        if os.environ.get("VERCEL"):
+            work_dir = Path("/tmp")
+            out_path = work_dir / f"leads_web_{timestamp}.csv"
+        else:
+            work_dir = None
+            out_path = OUTPUT_DIR / f"leads_web_{timestamp}.csv"
 
         run_collection(
             niches=niches,
@@ -77,6 +84,7 @@ def api_generate():
             clear_checkpoint=True,
             sleep_api=0.25,
             sleep_web=0.15,
+            work_dir=work_dir,
         )
 
         if not out_path.exists():
