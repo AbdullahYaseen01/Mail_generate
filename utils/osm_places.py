@@ -46,6 +46,7 @@ class OSMPlace:
     rating: None
     user_ratings_total: None
     types: list[str]
+    owner: str  # operator/owner/contact person when available
 
 
 def _normalize_website(url: str) -> str:
@@ -136,12 +137,11 @@ def _element_to_place(elem: dict, tag_key: str, tag_value: str) -> OSMPlace | No
     addr = " ".join(str(p) for p in addr_parts if p) or f"{lat:.4f}, {lon:.4f}"
 
     website = tags.get("website") or tags.get("contact:website") or ""
-    website = _normalize_website(website)
-    # Require website for consistency with Google flow (leads with website)
-    if not website:
-        return None
+    website = _normalize_website(website) if website else ""
 
     phone = tags.get("phone") or tags.get("contact:phone") or ""
+    raw_owner = tags.get("operator") or tags.get("owner") or tags.get("contact:person") or ""
+    owner = raw_owner.strip() if isinstance(raw_owner, str) else ""
     osm_type = elem.get("type", "node")
     osm_id = elem.get("id", 0)
     place_id = f"osm:{osm_type}:{osm_id}"
@@ -158,6 +158,7 @@ def _element_to_place(elem: dict, tag_key: str, tag_value: str) -> OSMPlace | No
         rating=None,
         user_ratings_total=None,
         types=[f"{tag_key}={tag_value}"],
+        owner=owner,
     )
 
 

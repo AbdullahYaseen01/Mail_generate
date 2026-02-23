@@ -151,18 +151,22 @@ def save_checkpoint(
 
 def place_to_lead(place: PlaceResult, niche: str, city: str) -> dict:
     """Convert PlaceResult to lead dict for CSV."""
+    reviews = place.user_ratings_total if place.user_ratings_total is not None else ""
+    owner_full = (getattr(place, "owner", "") or "").strip() or "Nill"
     return {
         "niche": niche,
         "city": city,
         "business_name": place.name,
+        "first_name": owner_full,
+        "reviews_count": reviews,
         "formatted_address": place.formatted_address,
         "latitude": place.latitude,
         "longitude": place.longitude,
         "phone": place.phone or "Nill",
         "google_maps_url": place.google_maps_url,
-        "website_url": place.website,
+        "website_url": place.website or "Nill",
         "rating": place.rating if place.rating is not None else "",
-        "ratings_count": place.user_ratings_total if place.user_ratings_total is not None else "",
+        "ratings_count": reviews,
         "place_id": place.place_id,
         "emails_found": "Nill",
         "email_source_page": "",
@@ -172,16 +176,19 @@ def place_to_lead(place: PlaceResult, niche: str, city: str) -> dict:
 
 def osm_place_to_lead(place: OSMPlace, niche: str, city: str) -> dict:
     """Convert OSMPlace to lead dict for CSV (same columns)."""
+    owner_full = (place.owner or "").strip() or "Nill"
     return {
         "niche": niche,
         "city": city,
         "business_name": place.name,
+        "first_name": owner_full,
+        "reviews_count": "",
         "formatted_address": place.formatted_address,
         "latitude": place.latitude,
         "longitude": place.longitude,
         "phone": place.phone or "Nill",
         "google_maps_url": place.google_maps_url,
-        "website_url": place.website,
+        "website_url": place.website or "Nill",
         "rating": "",
         "ratings_count": "",
         "place_id": place.place_id,
@@ -195,7 +202,7 @@ def export_csv(leads: list[dict], output_path: Path) -> None:
     """Export leads to CSV."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     columns = [
-        "niche", "city", "business_name",
+        "niche", "city", "business_name", "first_name", "reviews_count",
         "phone", "google_maps_url", "website_url",
         "emails_found",
     ]
@@ -318,9 +325,6 @@ def _run_google(
                             lead["gmail_addresses"] = _gmail_addresses_from_emails(emails)
                         except Exception as e:
                             logging.debug("Email extraction failed for %s: %s", place.website, e)
-                    # When extracting emails, only count leads that have at least one email
-                    if extract_emails and lead.get("emails_found") == "Nill":
-                        continue
                     leads.append(lead)
                     if len(leads) % CHECKPOINT_INTERVAL == 0:
                         save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
@@ -374,20 +378,24 @@ def _run_osm(
                 places = collect_osm_places_for_niche_city(
                     niche=niche, city=city, country="Germany", sleep_seconds=args.sleep_api,
                 )
+                logging.info("OSM returned %d places for %s in %s", len(places), niche, city)
                 candidates: list[tuple[OSMPlace, str, str]] = []
                 for place in places:
                     if place.place_id in seen_place_ids:
                         continue
-                    domain = osm_get_domain(place.website)
-                    if domain in seen_domains:
+                    domain = osm_get_domain(place.website) if place.website else ""
+                    if domain and domain in seen_domains:
                         continue
                     seen_place_ids.add(place.place_id)
-                    seen_domains.add(domain)
+                    if domain:
+                        seen_domains.add(domain)
                     if extract_emails and place.website:
                         candidates.append((place, niche, city))
                     else:
                         lead = osm_place_to_lead(place, niche, city)
                         leads.append(lead)
+                    if len(leads) >= max_leads:
+                        break
 
                 if not candidates:
                     if len(leads) % CHECKPOINT_INTERVAL == 0:
@@ -404,11 +412,10 @@ def _run_osm(
                         if len(leads) >= max_leads:
                             break
                         try:
-                            lead, has_email = future.result()
-                            if has_email:
-                                leads.append(lead)
-                                if len(leads) % CHECKPOINT_INTERVAL == 0:
-                                    save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
+                            lead, _has_email = future.result()
+                            leads.append(lead)
+                            if len(leads) % CHECKPOINT_INTERVAL == 0:
+                                save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
                         except Exception as e:
                             logging.debug("Worker error: %s", e)
 
