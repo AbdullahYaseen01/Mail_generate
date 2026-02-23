@@ -1,0 +1,16 @@
+{
+  "google_api_key": "YOUR_GOOGLE_API_KEY_HERE",
+  "places_api": {
+    "fields": [
+      "name",
+      "formatted_address",
+      "geometry",
+      "website",
+      "formatted_phone_number",
+      "url",
+      "rating",
+      "user_ratings_total",
+      "types"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+# Reduce serverless bundle size
+.git
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+env
+outputs/*.csv
+outputs/checkpoint.json
+config.json
+*.md
+!README.md
+tests
+.pytest_cache
+.cursor

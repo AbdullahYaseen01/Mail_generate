@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lead Dataset Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #1a1a1f;
+      --border: #2a2a32;
+      --text: #e8e8ed;
+      --muted: #8888a0;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 0 0 0.75rem 0;
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+    }
+    select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      min-height: 120px;
+    }
+    select[multiple] option {
+      padding: 0.35rem 0;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+    .btn {
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: white;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .message {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .message.visible {
+      display: block;
+    }
+    .message.error {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .message.success {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .message.info {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lead Dataset Builder</h1>
+    <p class="subtitle">Choose niches and cities, then generate a CSV of leads (with emails when possible).</p>
+
+    <form id="form" class="card">
+      <h2>Niches</h2>
+      <label for="niches">Select one or more niches</label>
+      <select id="niches" name="niches" multiple></select>
+      <p class="hint">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</p>
+    </form>
+
+    <div class="card">
+      <h2>Cities</h2>
+      <label for="cities">Select one or more cities</label>
+      <select id="cities" name="cities" multiple></select>
+      <p class="hint">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</p>
+    </div>
+
+    <div class="card">
+      <h2>Options</h2>
+      <label for="max_leads">Max leads to collect</label>
+      <input type="number" id="max_leads" name="max_leads" value="20" min="1" max="500">
+      <div class="checkbox-row">
+        <input type="checkbox" id="extract_emails" name="extract_emails" checked>
+        <label for="extract_emails" style="margin-bottom:0">Extract emails from websites (only leads with email are included)</label>
+      </div>
+    </div>
+
+    <button type="submit" form="form" class="btn" id="submitBtn">Generate CSV</button>
+    <div id="message" class="message"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const nichesSelect = document.getElementById('niches');
+    const citiesSelect = document.getElementById('cities');
+    const maxLeadsInput = document.getElementById('max_leads');
+    const extractEmailsCheck = document.getElementById('extract_emails');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageEl = document.getElementById('message');
+
+    function showMessage(text, type) {
+      messageEl.textContent = text;
+      messageEl.className = 'message visible ' + (type || 'info');
+    }
+
+    function hideMessage() {
+      messageEl.className = 'message';
+    }
+
+    // Load niches and cities from API
+    fetch('/api/options')
+      .then(r => r.json())
+      .then(data => {
+        (data.niches || []).forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n;
+          opt.textContent = n;
+          nichesSelect.appendChild(opt);
+        });
+        (data.cities || []).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          citiesSelect.appendChild(opt);
+        });
+      })
+      .catch(() => showMessage('Could not load options.', 'error'));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const niches = Array.from(nichesSelect.selectedOptions).map(o => o.value);
+      const cities = Array.from(citiesSelect.selectedOptions).map(o => o.value);
+      if (!niches.length || !cities.length) {
+        showMessage('Please select at least one niche and one city.', 'error');
+        return;
+      }
+      submitBtn.disabled = true;
+      hideMessage();
+      showMessage('Generating leads… This may take 1–3 minutes.', 'info');
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            niches,
+            cities,
+            max_leads: Math.max(1, Math.min(500, parseInt(maxLeadsInput.value, 10) || 20)),
+            extract_emails: extractEmailsCheck.checked
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showMessage(err.error || res.statusText || 'Request failed', 'error');
+          submitBtn.disabled = false;
+          return;
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.headers.get('Content-Disposition')?.match(/filename="?([^";]+)"?/)?.[1] || 'leads.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showMessage('CSV downloaded successfully.', 'success');
+      } catch (err) {
+        showMessage(err.message || 'Network error.', 'error');
+      }
+      submitBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "functions": {
+    "api/generate.py": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" }
+  ]
+}

@@ -1,0 +1,12 @@
+# Google Places API client
+googlemaps>=4.10.0
+
+# HTTP requests for email extraction
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Web frontend
+flask>=3.0.0
+
+# Data handling
+# (stdlib: csv, json, argparse - no extra deps)

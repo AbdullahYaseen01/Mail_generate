@@ -1,0 +1,14 @@
+# Config with API key - do not commit
+config.json
+
+# Outputs (optional - remove if you want to track)
+outputs/*.csv
+outputs/checkpoint.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
