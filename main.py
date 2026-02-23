@@ -342,6 +342,8 @@ def _run_google(
                             lead["gmail_addresses"] = _gmail_addresses_from_emails(emails)
                         except Exception as e:
                             logging.debug("Email extraction failed for %s: %s", place.website, e)
+                    if extract_emails and lead.get("emails_found") == "Nill":
+                        continue
                     leads.append(lead)
                     if len(leads) % CHECKPOINT_INTERVAL == 0:
                         save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
@@ -429,7 +431,9 @@ def _run_osm(
                         if len(leads) >= max_leads:
                             break
                         try:
-                            lead, _has_email = future.result()
+                            lead, has_email = future.result()
+                            if not has_email:
+                                continue
                             leads.append(lead)
                             if len(leads) % CHECKPOINT_INTERVAL == 0:
                                 save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
@@ -458,7 +462,7 @@ def main() -> None:
 
     if len(leads) >= max_leads:
         logging.info("Already have %d leads (>= max %d). Exporting and exiting.", len(leads), max_leads)
-        export_csv(leads, args.output)
+        export_csv(leads, args.output, require_email_and_website=extract_emails)
         return
 
     logging.info(
@@ -472,7 +476,7 @@ def main() -> None:
         _run_osm(args, leads, seen_place_ids, seen_domains, max_leads, extract_emails)
 
     save_checkpoint(leads, seen_place_ids, seen_domains, getattr(args, "checkpoint_file", None))
-    export_csv(leads, args.output)
+    export_csv(leads, args.output, require_email_and_website=extract_emails)
     logging.info("Done. Total leads: %d", len(leads))
 
 
@@ -529,7 +533,7 @@ def run_collection(
     leads, seen_place_ids, seen_domains = load_checkpoint(checkpoint_file)
     # When using custom niches/cities we ignore checkpoint and start fresh for this run
     if len(leads) >= max_leads and not (niches and cities):
-        export_csv(leads, output_path)
+        export_csv(leads, output_path, require_email_and_website=extract_emails)
         return output_path
     if args.source == "google":
         try:
@@ -540,7 +544,7 @@ def run_collection(
     else:
         _run_osm(args, leads, seen_place_ids, seen_domains, max_leads, extract_emails, niches=niches, cities=cities)
     save_checkpoint(leads, seen_place_ids, seen_domains, args.checkpoint_file)
-    export_csv(leads, output_path)
+    export_csv(leads, output_path, require_email_and_website=extract_emails)
     return output_path
 
 
