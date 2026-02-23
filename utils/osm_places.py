@@ -138,6 +138,9 @@ def _element_to_place(elem: dict, tag_key: str, tag_value: str) -> OSMPlace | No
 
     website = tags.get("website") or tags.get("contact:website") or ""
     website = _normalize_website(website) if website else ""
+    # Require website so leads have website_url and we can extract emails
+    if not website:
+        return None
 
     phone = tags.get("phone") or tags.get("contact:phone") or ""
     raw_owner = tags.get("operator") or tags.get("owner") or tags.get("contact:person") or ""

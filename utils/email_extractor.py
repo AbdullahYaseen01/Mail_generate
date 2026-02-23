@@ -157,7 +157,7 @@ def extract_emails_from_html(html: str) -> list[tuple[str, str]]:
 def extract_emails_from_website(
     website_url: str,
     sleep_seconds: float = 0.0,
-    max_pages: int = 1,
+    max_pages: int = 2,
 ) -> tuple[list[str], str]:
     """
     Visit business website and extract public emails.
