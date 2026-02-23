@@ -7,8 +7,8 @@ import sys
 import time
 from pathlib import Path
 
-# Ensure project root is on path when running on Vercel
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Ensure project root is on path when running on Vercel (api/generate/index.py -> 2 levels up)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from main import run_collection
 from http.server import BaseHTTPRequestHandler

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/generate.py": {
+    "api/generate/index.py": {
       "maxDuration": 60
     }
   },
